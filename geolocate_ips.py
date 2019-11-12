@@ -95,27 +95,39 @@ class GeolocateIPs(object):
 
         need_geos = ip_set.difference(gathered)
 
-        time_needed = round(len(need_geos) / 15000, 1)
+        time_needed = round(len(need_geos) / 15000, 1) # this is the hourly rate limit
         msg = (len(need_geos), time_needed)
+        # actual time may differ depending on API fetch speed
         print('Fetching {} new geolocations. This will take at least {} hours.'.format(msg[0], msg[1]))
 
-
+        ssl_errors = []
         for ip in need_geos:
             record_count += 1
-            response = self._query_api(ip)
-            if response.status_code == 200:
-                newline = ','.join((ip, response.text))
-                self.output_lines.append(newline)
-            elif response.status_code == 403:
-                # print a sleep message
-                print('{}: Reached hourly query limit. Sleeping for {} seconds.'.\
-                    format(datetime.datetime.now(), sleep_interval))
-                time.sleep(sleep_interval)
-            else:
-                print('{}: Return code: {} for IP {}. Adding IP to `failed_ips` list.'.\
-                    format(datetime.datetime.now(), response.status_code, ip))
+            try: 
+                response = self._query_api(ip)
+                ssl_errors = []
+                if response.status_code == 200:
+                    newline = ','.join((ip, response.text))
+                    self.output_lines.append(newline)
+                elif response.status_code == 403:
+                    # print a sleep message
+                    print('{}: Reached hourly query limit. Sleeping for {} seconds.'.\
+                        format(datetime.datetime.now(), sleep_interval))
+                    time.sleep(sleep_interval)
+                else:
+                    print('{}: Return code: {} for IP {}. Adding IP to `failed_ips` list.'.\
+                        format(datetime.datetime.now(), response.status_code, ip))
+                    self.failed_ips.append(ip)
+            except SSLError:
+                print('{}: SSL Error at record {}, IP {}'.\
+                    format(datetime.datetime.now(), record_count, ip)) 
                 self.failed_ips.append(ip)
-        
+                if len(ssl_errors) > 10: # too many failures in a row, let's rest awhile
+                    print('{}: 10 SSL Errors in a row. Sleeping for awhile.'.\
+                        format(datetime.datetime.now())))
+                    time.sleep(sleep_interval)
+                    ssl_errors = []
+
             # at the write interval, write file
             if record_count % write_interval == 0:
                 print('{}: Writing IP geolocations for IPs {}-{} to file.'.\
