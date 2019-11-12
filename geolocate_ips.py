@@ -118,15 +118,17 @@ class GeolocateIPs(object):
                     print('{}: Return code: {} for IP {}. Adding IP to `failed_ips` list.'.\
                         format(datetime.datetime.now(), response.status_code, ip))
                     self.failed_ips.append(ip)
-            except SSLError:
+            except requests.exceptions.SSLError as e:
                 print('{}: SSL Error at record {}, IP {}'.\
                     format(datetime.datetime.now(), record_count, ip)) 
                 self.failed_ips.append(ip)
                 if len(ssl_errors) > 10: # too many failures in a row, let's rest awhile
                     print('{}: 10 SSL Errors in a row. Sleeping for awhile.'.\
-                        format(datetime.datetime.now())))
+                        format(datetime.datetime.now()))
                     time.sleep(sleep_interval)
                     ssl_errors = []
+            if record_count % 1000 == 0:
+                print('{}: Completed {} IP pulls.'.format(datetime.datetime.now(), record_count))
 
             # at the write interval, write file
             if record_count % write_interval == 0:
