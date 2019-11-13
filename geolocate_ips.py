@@ -9,13 +9,6 @@ class GeolocateIPs(object):
     5 minutes before trying again. If an output path is supplied,
     the methods will scan that file for previously geolocated IPs,
     so as not to repeat the geolocations, to save API calls. 
-
-    Parameters
-    ----------
-    ip_list_path: str, default None
-        Path to IP list data set. Module will expect one IP address per
-        line.
-
     """
 
     def __init__(self):
@@ -56,7 +49,7 @@ class GeolocateIPs(object):
         Parameters
         ----------
         ip_list_path: str
-            Path to IP list.
+            Path to IP list. List should be a text file with one IP address per row. 
 
         Returns
         -------
@@ -72,7 +65,35 @@ class GeolocateIPs(object):
         print('Found {} unique IP addresses.'.format(len(self.ip_set)))
         return self.ip_set
 
-    def geo_ips(self, ip_set, output_path, write_interval=5000, sleep_interval=300):
+    def geo_ips(self, ip_set, output_path, write_interval=1000, sleep_interval=300):
+        """ Geolocate IP addresses using the freegeoip.app API. This function takes
+        a list or set of the IP addresses you wish to geolocate and an output file path. 
+        The function queries the freegeoip.app api, obtaining a CSV of the possible 
+        IP address geolocation (note there can always be some error with these methods). 
+        After a set interval of IP calls, it will append all the newly obtained IPs to
+        the the output file (it will only append, never overwrite).
+
+        Parameters
+        ----------
+        ip_set: set or list
+          The list of IP addresses to geolocate. 
+        output_path: str
+          The path to the output file to write geolocations
+        write_interval: int, default 1000
+          When calling a large number of IP addresses, you will periodically want to save
+          the geolocations to a file, in case the program crashes. The `write_interval` 
+          specifies how often to save the CSVs to a file. For example if `write_interval = 100`, 
+          then every 100 API calls, the geolocations are saved to a file.
+        sleep_interval: int, default 300
+          API calls to the freegeoip.app are limited to 15,000 per hour. If you happen to exceed 
+          that rate limit (indicated by a `403` http message), this program will sleep for
+          `sleep_interval` seconds before trying again. 
+
+        Returns
+        -------
+        None. All output is written to the `output_path` file. 
+
+        """
 
         self.output_lines = []
         # write to file every 5000 geolocated IPs
@@ -148,10 +169,3 @@ class GeolocateIPs(object):
         if len(self.failed_ips) > 0:
             print('Failed to write {} IPs. See `failed_ips` attribute of object.'.\
                     format(len(self.failed_ips)))
-
-        
-
-
-
-
-
