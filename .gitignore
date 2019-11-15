@@ -1,4 +1,6 @@
-data
+# large data files
+data/honeypot.json
+data/honeypot_df.pkl
 # Byte-compiled / optimized / DLL files
 *.DS_Store
 *__pycache__/.pyc
