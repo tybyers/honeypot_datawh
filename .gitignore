@@ -9,3 +9,5 @@ data/honeypot_df.pkl
 analysis/.ipynb_checkpoints/*ipynb
 .pytest_cache
  
+#config file
+redshift.cfg
