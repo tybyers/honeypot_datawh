@@ -130,3 +130,28 @@ def reputation_raw_to_df(filename):
     rep.drop(['Coords', 'x'], axis=1, inplace=True)
 
     return rep
+
+def ip_geo_to_df(filename):
+    """ Takes a CSV file of geolocations obtained via the `geolocate_ips` modules, 
+    slaps the appropriate column names on it, and returns a Data Frame. Userful so you may then save
+    to CSV and upload to S3.
+
+    Parameters
+    ----------
+    filename: str
+      Filename for CSV file from geolocate_ips functions
+
+    Returns
+    -------
+    pd DataFrame 
+      The original geolocations, but with proper headers for saving to S3 and later working with Redshift. 
+
+    """
+    colnames = ['IP_orig', 'IP', 'country_code', 'country_name', 'region_code',
+                'region_name', 'city', 'zip_code', 'time_zone', 'latitude', 
+                'longitude', 'metro_code']
+    geos = pd.read_csv(filename, header=None, names=colnames)
+
+    return geos
+
+    
