@@ -4,9 +4,21 @@ import json
 import configparser
 
 class redshift(object):
+    """ This class allows a user to create a Redshift cluster using information entered into a 
+    configuration file. The usser must have already set up a Key and Secret pair on AWS. Users may 
+    also use methods within to delete the cluster once they are done. If a cluster is brought up
+    with this process, it may still be accessed using this class even if the Python kernel is restarted,
+    since the Redshift cluster will persist until explicitly deleted. 
+
+    Parameters
+    ----------
+    config_file: str
+      Path to the configuration file, which may be read by the `configparser` package. A sample 
+      configuration parse, "aws_example.cfg", should be distributed with this package. 
+
+    """
 
     def __init__(self, config_file='aws.cfg'):
-
         config = configparser.ConfigParser()
         with open(config_file) as cf:
             config.read_file(cf)
@@ -30,6 +42,19 @@ class redshift(object):
 
         
     def create_cluster(self, verbose=True):
+        """ Create a redshift cluster. This method creates a new Redshift cluster using the 
+        parameters specified in the config file. However, the user may also change the cluster
+        parameters on the fly using the various `DWH_*` attributes of the redshift object.
+
+        Parameters
+        ----------
+        verbose: bool, default True
+          Prints out a status message when the cluster is being created.
+
+        Returns
+        -------
+        None. The cluster db object will reside in the `redshiftdb` attribute of the redshift object. 
+        """
 
         try:
             response = self.redshiftdb.create_cluster(
@@ -50,6 +75,19 @@ class redshift(object):
             print(e)
 
     def get_cluster_info(self):
+        """ Print out the information about the cluster. This is especially important when the cluster
+        is being created or deleted. This function also acts as an important function to run *after* the
+        cluster has been created, so that the Endpoint information can be added to the `DWH_ENDPOINT` attribute
+        of the redshift object. This is important if you need to read/write access to the cluster.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        dict of important cluster information.
+        """
 
         cluster_info = self.redshiftdb.describe_clusters(ClusterIdentifier=self.DWH_CLUSTER_IDENTIFIER)['Clusters'][0]
         show_keys = ['ClusterIdentifier', 'NodeType', 'ClusterStatus', 'MasterUsername', 'DBName',\
@@ -64,6 +102,28 @@ class redshift(object):
         return cluster_info
 
     def test_cluster_connection(self):
+        """ This method can be used to test connection to the cluster. To verify connection worked, you
+        will need to do something like the following in jupyter notebooks:
+
+        Example
+        -------
+        %load_ext sql
+        rs = redshift()
+        rs.db_connect()
+        cs = rs.test_cluster_connection()
+        %sql $cs
+
+        # output may look like the following:
+        'Connected: honeypotuser@honeypot'
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        str, connection to database.
+        """
 
         conn_str = "postgresql://{}:{}@{}:{}/{}".format(
             self.DWH_DB_USER,
@@ -76,5 +136,15 @@ class redshift(object):
         return conn_str
 
     def shutdown_cluster(self):
+        """ Shutdown the cluster stored in the `redshiftdb` attribute of the redshift object.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
 
         self.redshiftdb.delete_cluster(ClusterIdentifier=self.DWH_CLUSTER_IDENTIFIER, SkipFinalClusterSnapshot = True)
