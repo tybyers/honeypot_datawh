@@ -36,32 +36,51 @@ class honeypot_redshift(redshift):
 
         # at some point, make the "tables" parameter work
         cur = self.conn.cursor()
-        for table in self.table_cmds:
+
+        if tables == 'all':
+            table_names = self.table_cmds.keys()
+        elif isinstance(tables, list):
+            table_names = tables
+        else:
+            raise ValueError('`tables` parameter must be "all" or of type list.')
+        for table in table_names:
             cur.execute(self.table_cmds[table]['drop'])
             self.conn.commit()
-        
 
     def create_tables(self, tables='all'):
 
         # at some point, make the "tables" parameter work
         cur = self.conn.cursor()
-        for table in self.table_cmds:
+        if tables == 'all':
+            table_names = self.table_cmds.keys()
+        elif isinstance(tables, list):
+            table_names = tables
+        else:
+            raise ValueError('`tables` parameter must be "all" or of type list.')
+        for table in table_names:
             cur.execute(self.table_cmds[table]['create']) 
             self.conn.commit()
 
     def copy_into_tables(self, tables='all'):
 
         cur = self.conn.cursor()
-        for table in self.table_cmds:
+        if tables == 'all':
+            table_names = self.table_cmds.keys()
+        elif isinstance(tables, list):
+            table_names = tables
+        else:
+            raise ValueError('`tables` parameter must be "all" or of type list.')
+        for table in table_names:
             if 'copy' in self.table_cmds[table]:
                 print('Copying into table: {}'.format(table))
                 cmd = self.table_cmds[table]['copy'].format(
                     self.data_paths[table], self.IAM_ROLE
                 )
-                print(cmd)
                 cur.execute(cmd) 
                 self.conn.commit()
 
     def insert_into_tables(self, tables='all'):
 
         pass
+
+    

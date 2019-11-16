@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS staging_reputation
     Type         VARCHAR(255),
     Country      VARCHAR(2),
     Locale       VARCHAR(255),
-    Latitude     NUMERIC,
-    Longitude    NUMERIC
+    Latitude     FLOAT4,
+    Longitude    FLOAT4
 );""")
 
 staging_ipgeo_create = ("""
@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS staging_ipgeo
     city          VARCHAR(255),
     zip_code      VARCHAR(10),
     time_zone     VARCHAR(255),
-    latitude      NUMERIC,
-    longitude     NUMERIC,
+    latitude      FLOAT4,
+    longitude     FLOAT4,
     metro_code    INT
 );""")
 
