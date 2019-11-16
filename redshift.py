@@ -5,7 +5,7 @@ import configparser
 
 class redshift(object):
 
-    def __init__(self, config_file='redshift.cfg'):
+    def __init__(self, config_file='aws.cfg'):
 
         config = configparser.ConfigParser()
         with open(config_file) as cf:
@@ -54,7 +54,7 @@ class redshift(object):
         cluster_info = self.redshiftdb.describe_clusters(ClusterIdentifier=self.DWH_CLUSTER_IDENTIFIER)['Clusters'][0]
         show_keys = ['ClusterIdentifier', 'NodeType', 'ClusterStatus', 'MasterUsername', 'DBName',\
                     'Endpoint', 'NumberOfNodes', 'VpcId']
-        cluster_info = [(k,v) for k,v in cluster_info.items() if k in show_keys]
+        cluster_info = {k: v for k,v in cluster_info.items() if k in show_keys}
 
         if 'Endpoint' in cluster_info:
             self.DWH_ENDPOINT = cluster_info['Endpoint']['Address']
@@ -65,8 +65,16 @@ class redshift(object):
 
     def test_cluster_connection(self):
 
-        pass
-    
+        conn_str = "postgresql://{}:{}@{}:{}/{}".format(
+            self.DWH_DB_USER,
+            self.DWH_DB_PASSWORD,
+            self.DWH_ENDPOINT,
+            self.DWH_PORT,
+            self.DWH_DB
+        )
+
+        return conn_str
+
     def shutdown_cluster(self):
 
         self.redshiftdb.delete_cluster(ClusterIdentifier=self.DWH_CLUSTER_IDENTIFIER, SkipFinalClusterSnapshot = True)
