@@ -19,6 +19,11 @@ class honeypot_redshift(redshift):
         self.s3_ipgeo = config.get('S3', 'IP_GEO_DATA')
         self.table_cmds = SQL_QUERIES.table_commands
         self.conn = None # db connection
+        self.data_paths = {
+            'staging_honeypot': self.s3_honeypot,
+            'staging_reputation': self.s3_reputation,
+            'staging_ipgeo': self.s3_ipgeo
+        }
 
     def db_connect(self):
 
@@ -33,6 +38,8 @@ class honeypot_redshift(redshift):
         cur = self.conn.cursor()
         for table in self.table_cmds:
             cur.execute(self.table_cmds[table]['drop'])
+            self.conn.commit()
+        
 
     def create_tables(self, tables='all'):
 
@@ -40,6 +47,20 @@ class honeypot_redshift(redshift):
         cur = self.conn.cursor()
         for table in self.table_cmds:
             cur.execute(self.table_cmds[table]['create']) 
+            self.conn.commit()
+
+    def copy_into_tables(self, tables='all'):
+
+        cur = self.conn.cursor()
+        for table in self.table_cmds:
+            if 'copy' in self.table_cmds[table]:
+                print('Copying into table: {}'.format(table))
+                cmd = self.table_cmds[table]['copy'].format(
+                    self.data_paths[table], self.IAM_ROLE
+                )
+                print(cmd)
+                cur.execute(cmd) 
+                self.conn.commit()
 
     def insert_into_tables(self, tables='all'):
 
