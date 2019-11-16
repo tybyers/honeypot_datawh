@@ -127,6 +127,6 @@ def reputation_raw_to_df(filename):
         coords = coords.split(',')
         return coords[0], coords[1]
     rep["Latitude"], rep["Longitude"] = rep["Coords"].str.split(',', 1).str
-    rep.drop(['Coords', 'x'], inplace=True)
+    rep.drop(['Coords', 'x'], axis=1, inplace=True)
 
     return rep
