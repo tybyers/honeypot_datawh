@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS staging_honeypot
 dim_glastopf_create = ("""
 CREATE TABLE IF NOT EXISTS glastopf_events
 (
-    id                  VARCHAR(255),
+    id                  VARCHAR(255) PRIMARY KEY,
     ident               VARCHAR(255),
     normalized          BOOLEAN,
     timestamp           TIMESTAMP,
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS glastopf_events
 dim_amun_create = ("""
 CREATE TABLE IF NOT EXISTS amun_events
 (
-    id                  VARCHAR(255),
+    id                  VARCHAR(255) PRIMARY KEY,
     ident               VARCHAR(255),
     normalized          BOOLEAN,
     timestamp           TIMESTAMP,
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS amun_events
 dim_dionaea_create = ("""
 CREATE TABLE IF NOT EXISTS dionaea_events
 (
-    id                  VARCHAR(255),
+    id                  VARCHAR(255) PRIMARY KEY,
     ident               VARCHAR(255),
     normalized          BOOLEAN,
     timestamp           TIMESTAMP,
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS dionaea_events
 dim_snort_create = ("""
 CREATE TABLE IF NOT EXISTS snort_events
 (
-    id                  VARCHAR(255),
+    id                  VARCHAR(255) PRIMARY KEY,
     ident               VARCHAR(255),
     normalized          BOOLEAN,
     timestamp           TIMESTAMP,
@@ -138,16 +138,23 @@ CREATE TABLE IF NOT EXISTS snort_events
 );""")
 
 dim_ipgeo_create = ("""
-
-;""")
+CREATE TABLE IF NOT EXISTS ipgeo
+(
+    id INT PRIMARY KEY
+);""")
 
 dim_reputation_create = ("""
-
+CREATE TABLE IF NOT EXISTS reputation
+(
+    id INT  PRIMARY KEY
+)
 ;""")
 
 fact_attacks_create = ("""
-
-;""")
+CREATE TABLE IF NOT EXISTS attacks
+(
+    id INT PRIMARY KEY
+);""")
 
 # COPY INTO TABLES
 staging_reputation_copy = ("""
@@ -179,6 +186,45 @@ CSV;
 """) #.format(HONEYPOT_DATA, IAM_ROLE)
 
 # INSERT INTO TABLES
+dim_glastopf_insert = ("""
+INSERT INTO glastopf_events (
+    id, ident, normalized, timestamp, channel, pattern, filename,
+    request_raw, request_url, attackerIP, attackerPort, victimPort, victimIP)
+  (SELECT DISTINCT id, ident, normalized, "timestamp", channel, pattern, filename,
+                   request_raw, request_url, attackerIP, attackerPort, victimPort, victimIP
+    FROM staging_honeypot
+    WHERE channel = 'glastopf.events')
+;""")
+
+dim_amun_insert = ("""
+INSERT INTO amun_events (
+    id, ident, normalized, timestamp, channel, attackerIP, attackerPort, 
+    victimIP, victimPort, connectionType)
+  (SELECT DISTINCT id, ident, normalized, "timestamp", channel, attackerIP, attackerPort, 
+    victimIP, victimPort, connectionType
+    FROM staging_honeypot
+    WHERE channel = 'amun.events')
+;""")
+
+dim_dionaea_insert = ("""
+INSERT INTO dionaea_events (
+    id, ident, normalized, timestamp, channel, attackerIP, attackerPort, victimPort, 
+    victimIP, connectionType, connectionProtocol, connectionTransport, remoteHostname)
+  (SELECT DISTINCT id, ident, normalized, "timestamp", channel, attackerIP, attackerPort, victimPort, 
+    victimIP, connectionType, connectionProtocol, connectionTransport, remoteHostname
+    FROM staging_honeypot
+    WHERE channel = 'dionaea.connections')
+;""")
+
+dim_snort_insert = ("""
+INSERT INTO snort_events (
+    id, ident, normalized, timestamp, channel, attackerIP, victimIP, connectionType,
+    connectionProtocol, priority, header, signature, sensor)
+  (SELECT DISTINCT id, ident, normalized, "timestamp", channel, attackerIP, victimIP, connectionType,
+    connectionProtocol, priority, header, signature, sensor
+    FROM staging_honeypot
+    WHERE channel = 'snort.alerts')
+;""")
 
 # the following dict allows us to more easily control which drop/create/copy/insert functions we want to call
 table_commands = {
@@ -200,36 +246,33 @@ table_commands = {
     'dim_glastopf': {
         'drop': dim_glastopf_drop,
         'create': dim_glastopf_create,
-        'insert': ''
+        'insert': dim_glastopf_insert
     },
     'dim_amun': {
         'drop': dim_amun_drop,
         'create': dim_amun_create,
-        'insert': ''
+        'insert': dim_amun_insert
     },
     'dim_dionaea': {
         'drop': dim_dionaea_drop,
         'create': dim_dionaea_create,
-        'insert': ''
+        'insert': dim_dionaea_insert
     },
     'dim_snort': {
         'drop': dim_snort_drop,
         'create': dim_snort_create,
-        'insert': ''
+        'insert': dim_snort_insert
     },
     'dim_ipgeo': {
         'drop': dim_ipgeo_drop,
-        'create': dim_ipgeo_create,
-        'insert': ''
+        'create': dim_ipgeo_create
     },
     'dim_reputation': {
         'drop': dim_reputation_drop,
-        'create': dim_reputation_create,
-        'insert': ''
+        'create': dim_reputation_create
     },
     'fact_attacks': {
         'drop': fact_attacks_drop,
-        'create': fact_attacks_create,
-        'insert': ''
+        'create': fact_attacks_create
     }
 }
