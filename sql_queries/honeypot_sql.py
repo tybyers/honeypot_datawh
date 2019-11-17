@@ -140,13 +140,32 @@ CREATE TABLE IF NOT EXISTS snort_events
 dim_ipgeo_create = ("""
 CREATE TABLE IF NOT EXISTS ipgeo
 (
-    id INT PRIMARY KEY
+    id            INTEGER IDENTITY(0,1) PRIMARY KEY,
+    IP4           VARCHAR(255),
+    country_code  VARCHAR(2),
+    country_name  VARCHAR(255),
+    region_code   VARCHAR(3),
+    region_name   VARCHAR(255),
+    city          VARCHAR(255),
+    zip_code      VARCHAR(10),
+    time_zone     VARCHAR(255),
+    latitude      FLOAT4,
+    longitude     FLOAT4,
+    metro_code    INT
 );""")
 
 dim_reputation_create = ("""
 CREATE TABLE IF NOT EXISTS reputation
 (
-    id INT  PRIMARY KEY
+    id            INTEGER IDENTITY(0,1) PRIMARY KEY,
+    IP4           VARCHAR(255),
+    reliability   INTEGER,
+    risk          INTEGER,
+    type          VARCHAR(255),
+    country       VARCHAR(2),
+    locale        VARCHAR(255),
+    latitude      FLOAT4,
+    longitude     FLOAT4
 )
 ;""")
 
@@ -226,6 +245,24 @@ INSERT INTO snort_events (
     WHERE channel = 'snort.alerts')
 ;""")
 
+dim_ipgeo_insert = ("""
+INSERT INTO ipgeo (
+    IP4, country_code, country_name, region_code, region_name,
+    city, zip_code, time_zone, latitude, longitude, metro_code)
+  (SELECT DISTINCT IP, country_code, country_name, region_code, region_name, 
+  city, zip_code, time_zone, latitude, longitude, metro_code
+  FROM staging_ipgeo
+  WHERE IP != '')
+;""")
+
+dim_reputation_insert = ("""
+INSERT INTO reputation (
+    IP4, reliability, risk, type, country, locale, latitude, longitude)
+  (SELECT DISTINCT IP, Reliability, Risk, Type, Country, Locale, Latitude, Longitude 
+  FROM staging_reputation
+  WHERE IP != '')
+;""")
+
 # the following dict allows us to more easily control which drop/create/copy/insert functions we want to call
 table_commands = {
     'staging_honeypot': {
@@ -265,11 +302,13 @@ table_commands = {
     },
     'dim_ipgeo': {
         'drop': dim_ipgeo_drop,
-        'create': dim_ipgeo_create
+        'create': dim_ipgeo_create,
+        'insert': dim_ipgeo_insert
     },
     'dim_reputation': {
         'drop': dim_reputation_drop,
-        'create': dim_reputation_create
+        'create': dim_reputation_create,
+        'insert': dim_reputation_insert
     },
     'fact_attacks': {
         'drop': fact_attacks_drop,
