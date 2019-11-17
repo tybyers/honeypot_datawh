@@ -172,7 +172,23 @@ CREATE TABLE IF NOT EXISTS reputation
 fact_attacks_create = ("""
 CREATE TABLE IF NOT EXISTS attacks
 (
-    id INT PRIMARY KEY
+    id                    INT IDENTITY(0,1) PRIMARY KEY,
+    timestamp             TIMESTAMP,
+    ident                 VARCHAR(255),
+    channel               VARCHAR(255),
+    attacker_IP           VARCHAR(255),
+    attacker_port         NUMERIC,
+    victim_IP             VARCHAR(255),
+    victim_port           NUMERIC,
+    attacker_city         VARCHAR(255),
+    attacker_region       VARCHAR(255),
+    attacker_country      VARCHAR(255),
+    attacker_timezone     VARCHAR(255),
+    attacker_latitude     FLOAT4,
+    attacker_longitude    FLOAT4,
+    attacker_type         VARCHAR(255),
+    attacker_risk         INTEGER,
+    attacker_reliability  INTEGER
 );""")
 
 # COPY INTO TABLES
@@ -263,6 +279,19 @@ INSERT INTO reputation (
   WHERE IP != '')
 ;""")
 
+fact_attacks_insert = ("""
+INSERT INTO attacks (
+  timestamp, ident, channel, attacker_IP, attacker_port, victim_IP,
+  victim_port, attacker_city, attacker_region, attacker_country, attacker_timezone,
+  attacker_latitude, attacker_longitude, attacker_type, attacker_risk, attacker_reliability)
+  (SELECT sh.timestamp, sh.ident, sh.channel, si.ip, sh.attackerport, 
+   si.ip, sh.victimport, si.city, si.region_name, si.country_name, si.time_zone,
+   si.latitude, si.longitude, sr.type, sr.risk, sr.reliability
+   FROM staging_honeypot AS sh
+   JOIN staging_ipgeo AS si ON sh.attackerip = si.ip_orig
+   LEFT JOIN staging_reputation sr ON si.ip = sr.ip)
+;""")
+
 # the following dict allows us to more easily control which drop/create/copy/insert functions we want to call
 table_commands = {
     'staging_honeypot': {
@@ -312,6 +341,7 @@ table_commands = {
     },
     'fact_attacks': {
         'drop': fact_attacks_drop,
-        'create': fact_attacks_create
+        'create': fact_attacks_create,
+        'insert': fact_attacks_insert
     }
 }
