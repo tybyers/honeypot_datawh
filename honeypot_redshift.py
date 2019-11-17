@@ -168,10 +168,6 @@ class honeypot_redshift(redshift):
         for table in table_names:
             if 'insert' in self.table_cmds[table]:
                 print('Inserting into table: {}'.format(table))
-                cmd = self.table_cmds[table]['insert'].format(
-                    self.data_paths[table], self.IAM_ROLE
-                )
+                cmd = self.table_cmds[table]['insert']
                 cur.execute(cmd) 
                 self.conn.commit()
-
-    
