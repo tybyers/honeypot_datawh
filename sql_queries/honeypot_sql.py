@@ -3,6 +3,13 @@
 staging_honeypot_drop = "DROP TABLE IF EXISTS staging_honeypot;"
 staging_ipgeo_drop = "DROP TABLE IF EXISTS staging_ipgeo;"
 staging_reputation_drop = "DROP TABLE IF EXISTS staging_reputation;"
+dim_glastopf_drop = "DROP TABLE IF EXISTS glastopf_events;"
+dim_amun_drop = "DROP TABLE IF EXISTS amun_events;"
+dim_dionaea_drop = "DROP TABLE IF EXISTS dionaea_events;"
+dim_snort_drop = "DROP TABLE IF EXISTS snort_events;"
+dim_ipgeo_drop = "DROP TABLE IF EXISTS ipgeo;"
+dim_reputation_drop = "DROP TABLE IF EXISTS reputation;"
+fact_attacks_drop = "DROP TABLE IF EXISTS attacks;"
 
 # CREATE TABLES
 staging_reputation_create = ("""
@@ -61,6 +68,87 @@ CREATE TABLE IF NOT EXISTS staging_honeypot
     remoteHostname      VARCHAR(255)
 );""")
 
+dim_glastopf_create = ("""
+CREATE TABLE IF NOT EXISTS glastopf_events
+(
+    id                  VARCHAR(255),
+    ident               VARCHAR(255),
+    normalized          BOOLEAN,
+    timestamp           TIMESTAMP,
+    channel             VARCHAR(255),
+    pattern             VARCHAR(255),
+    filename            VARCHAR(255),
+    request_raw         VARCHAR(MAX),
+    request_url         VARCHAR(MAX),
+    attackerIP          VARCHAR(255),
+    attackerPort        NUMERIC,
+    victimPort          NUMERIC,
+    victimIP            VARCHAR(255)
+);""")
+
+dim_amun_create = ("""
+CREATE TABLE IF NOT EXISTS amun_events
+(
+    id                  VARCHAR(255),
+    ident               VARCHAR(255),
+    normalized          BOOLEAN,
+    timestamp           TIMESTAMP,
+    channel             VARCHAR(255),
+    attackerIP          VARCHAR(255),
+    attackerPort        NUMERIC,
+    victimIP            VARCHAR(255),
+    victimPort          NUMERIC,
+    connectionType      VARCHAR(255)
+);""")
+
+dim_dionaea_create = ("""
+CREATE TABLE IF NOT EXISTS dionaea_events
+(
+    id                  VARCHAR(255),
+    ident               VARCHAR(255),
+    normalized          BOOLEAN,
+    timestamp           TIMESTAMP,
+    channel             VARCHAR(255),
+    attackerIP          VARCHAR(255),
+    attackerPort        NUMERIC,
+    victimPort          NUMERIC,
+    victimIP            VARCHAR(255),
+    connectionType      VARCHAR(255),
+    connectionProtocol  VARCHAR(255),
+    connectionTransport VARCHAR(10),
+    remoteHostname      VARCHAR(255)
+);""")
+
+dim_snort_create = ("""
+CREATE TABLE IF NOT EXISTS snort_events
+(
+    id                  VARCHAR(255),
+    ident               VARCHAR(255),
+    normalized          BOOLEAN,
+    timestamp           TIMESTAMP,
+    channel             VARCHAR(255),
+    attackerIP          VARCHAR(255),
+    victimIP            VARCHAR(255),
+    connectionType      VARCHAR(255),
+    connectionProtocol  VARCHAR(255),
+    priority            INTEGER,
+    header              VARCHAR(255),
+    signature           VARCHAR(255),
+    sensor              VARCHAR(255)
+);""")
+
+dim_ipgeo_create = ("""
+
+;""")
+
+dim_reputation_create = ("""
+
+;""")
+
+fact_attacks_create = ("""
+
+;""")
+
 # COPY INTO TABLES
 staging_reputation_copy = ("""
 COPY staging_reputation 
@@ -90,7 +178,9 @@ TIMEFORMAT 'auto'
 CSV;
 """) #.format(HONEYPOT_DATA, IAM_ROLE)
 
+# INSERT INTO TABLES
 
+# the following dict allows us to more easily control which drop/create/copy/insert functions we want to call
 table_commands = {
     'staging_honeypot': {
         'drop': staging_honeypot_drop,
@@ -107,10 +197,39 @@ table_commands = {
         'create': staging_reputation_create,
         'copy': staging_reputation_copy
     },
+    'dim_glastopf': {
+        'drop': dim_glastopf_drop,
+        'create': dim_glastopf_create,
+        'insert': ''
+    },
+    'dim_amun': {
+        'drop': dim_amun_drop,
+        'create': dim_amun_create,
+        'insert': ''
+    },
+    'dim_dionaea': {
+        'drop': dim_dionaea_drop,
+        'create': dim_dionaea_create,
+        'insert': ''
+    },
+    'dim_snort': {
+        'drop': dim_snort_drop,
+        'create': dim_snort_create,
+        'insert': ''
+    },
+    'dim_ipgeo': {
+        'drop': dim_ipgeo_drop,
+        'create': dim_ipgeo_create,
+        'insert': ''
+    },
+    'dim_reputation': {
+        'drop': dim_reputation_drop,
+        'create': dim_reputation_create,
+        'insert': ''
+    },
+    'fact_attacks': {
+        'drop': fact_attacks_drop,
+        'create': fact_attacks_create,
+        'insert': ''
+    }
 }
-
-# 'honeypot_staging': {
-#         'delete': '',
-#         'create': '',
-#         'insert': ''
-#     },
