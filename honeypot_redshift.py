@@ -156,6 +156,22 @@ class honeypot_redshift(redshift):
         None
         """
 
-        raise NotImplementedError
+        cur = self.conn.cursor()
+
+        if tables == 'all':
+            table_names = self.table_cmds.keys()
+        elif isinstance(tables, list):
+            table_names = tables
+        else:
+            raise ValueError('`tables` parameter must be "all" or of type list.')
+
+        for table in table_names:
+            if 'insert' in self.table_cmds[table]:
+                print('Inserting into table: {}'.format(table))
+                cmd = self.table_cmds[table]['insert'].format(
+                    self.data_paths[table], self.IAM_ROLE
+                )
+                cur.execute(cmd) 
+                self.conn.commit()
 
     
