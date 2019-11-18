@@ -24,7 +24,6 @@ class honeypot_redshift(redshift):
         config = configparser.ConfigParser()
         with open(config_file) as cf:
             config.read_file(cf)
-        #self.IAM_ROLE = config.get('IAM_ROLE', 'ARN')
         self.s3_honeypot = config.get('S3', 'HONEYPOT_DATA')
         self.s3_reputation = config.get('S3', 'REPUTATION_DATA')
         self.s3_ipgeo = config.get('S3', 'IP_GEO_DATA')
@@ -173,3 +172,7 @@ class honeypot_redshift(redshift):
                 cmd = self.table_cmds[table]['insert']
                 cur.execute(cmd) 
                 self.conn.commit()
+
+    def query_db(self, query):
+
+        pass

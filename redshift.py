@@ -72,10 +72,10 @@ class redshift(object):
                 DBName=self.DWH_DB,
                 ClusterIdentifier=self.DWH_CLUSTER_IDENTIFIER,
                 MasterUsername=self.DWH_DB_USER,
-                MasterUserPassword=self.DWH_DB_PASSWORD
+                MasterUserPassword=self.DWH_DB_PASSWORD,
 
                 # IamRole for s3 access if needed
-                IamRoles=self.IAM_ROLE
+                IamRoles=[self.IAM_ROLE]
             )
             if verbose: print('Creating cluster. Please run "get_cluster_info" to check status.')
         except Exception as e:
@@ -102,7 +102,7 @@ class redshift(object):
         cluster_info = {k: v for k,v in cluster_info.items() if k in show_keys}
 
         if 'Endpoint' in cluster_info:
-            if 'Address' in cluster_info['Endpoint']:
+            if isinstance(cluster_info['Endpoint'], dict) and 'Address' in cluster_info['Endpoint']:
                 self.DWH_ENDPOINT = cluster_info['Endpoint']['Address']
                 self.IAM_ROLE = self.iam.get_role(RoleName=self.IAM_ROLE_NAME)['Role']['Arn']
             else:
