@@ -34,12 +34,17 @@ class redshift(object):
         self.DWH_DB_PASSWORD = config.get('DWH', 'DWH_DB_PASSWORD')
         self.DWH_PORT = config.get('DWH', 'DWH_PORT')
         self.DWH_ENDPOINT = ''
+        self.IAM_ROLE_NAME = config.get('DWH', 'DWH_IAM_ROLE_NAME')
+        self.IAM_ROLE = ''
 
         self.redshiftdb = boto3.client('redshift', 
                                     region_name='us-west-2',
                                     aws_access_key_id=self.KEY,
                                     aws_secret_access_key=self.SECRET)
 
+        self.iam = boto3.client('iam', region_name='us-west-2',
+                                    aws_access_key_id=self.KEY,
+                                    aws_secret_access_key=self.SECRET)
         
     def create_cluster(self, verbose=True):
         """ Create a redshift cluster. This method creates a new Redshift cluster using the 
@@ -55,6 +60,8 @@ class redshift(object):
         -------
         None. The cluster db object will reside in the `redshiftdb` attribute of the redshift object. 
         """
+        # attach IAM role/policy first
+        self.attach_iam_role()
 
         try:
             response = self.redshiftdb.create_cluster(
@@ -68,7 +75,7 @@ class redshift(object):
                 MasterUserPassword=self.DWH_DB_PASSWORD
 
                 # IamRole for s3 access if needed
-                #IamRoles=[roleArn]
+                IamRoles=self.IAM_ROLE
             )
             if verbose: print('Creating cluster. Please run "get_cluster_info" to check status.')
         except Exception as e:
@@ -97,12 +104,49 @@ class redshift(object):
         if 'Endpoint' in cluster_info:
             if 'Address' in cluster_info['Endpoint']:
                 self.DWH_ENDPOINT = cluster_info['Endpoint']['Address']
+                self.IAM_ROLE = self.iam.get_role(RoleName=self.IAM_ROLE_NAME)['Role']['Arn']
             else:
                 print('Cluster may still be building or deleting. Please check back.')
         else:
             print('Cluster is still building. Please check back.')
 
         return cluster_info
+
+    def attach_iam_role(self):
+        """ Create a new IAM role and associate it IAM role with the database. If an IAM role with the
+        name already exists, it will still attach the role to the database. 
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        try:
+            print('Creating a new IAM Role')
+            dwhrole = self.iam.create_role(
+                Path='/',
+                RoleName=self.IAM_ROLE_NAME,
+                Description= 'Allows Redshift clusters to call AWS services on your behalf.',
+                AssumeRolePolicyDocument=json.dumps(
+                    {'Statement': [{'Action': 'sts:AssumeRole',
+                                'Effect': 'Allow',
+                                'Principal': {'Service': 'redshift.amazonaws.com'}}],
+                    'Version': '2012-10-17'}
+                )
+            )
+        except Exception as e:
+            print(e)
+
+        # attach policy
+        print('Attaching IAM policy')
+        self.iam.attach_role_policy(RoleName=self.IAM_ROLE_NAME,
+                                    PolicyArn='arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess')
+        # get IAM role
+        self.IAM_ROLE = self.iam.get_role(RoleName=self.IAM_ROLE_NAME)['Role']['Arn']
+
 
     def test_cluster_connection(self):
         """ This method can be used to test connection to the cluster. To verify connection worked, you

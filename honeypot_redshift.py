@@ -24,7 +24,7 @@ class honeypot_redshift(redshift):
         config = configparser.ConfigParser()
         with open(config_file) as cf:
             config.read_file(cf)
-        self.IAM_ROLE = config.get('IAM_ROLE', 'ARN')
+        #self.IAM_ROLE = config.get('IAM_ROLE', 'ARN')
         self.s3_honeypot = config.get('S3', 'HONEYPOT_DATA')
         self.s3_reputation = config.get('S3', 'REPUTATION_DATA')
         self.s3_ipgeo = config.get('S3', 'IP_GEO_DATA')
@@ -77,6 +77,7 @@ class honeypot_redshift(redshift):
             raise ValueError('`tables` parameter must be "all" or of type list.')
 
         for table in table_names:
+            print('Dropping table: {}'.format(table))
             cur.execute(self.table_cmds[table]['drop'])
             self.conn.commit()
 
@@ -106,6 +107,7 @@ class honeypot_redshift(redshift):
             raise ValueError('`tables` parameter must be "all" or of type list.')
 
         for table in table_names:
+            print('Creating table: {}'.format(table))
             cur.execute(self.table_cmds[table]['create']) 
             self.conn.commit()
 
