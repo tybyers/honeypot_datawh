@@ -95,7 +95,10 @@ class redshift(object):
         cluster_info = {k: v for k,v in cluster_info.items() if k in show_keys}
 
         if 'Endpoint' in cluster_info:
-            self.DWH_ENDPOINT = cluster_info['Endpoint']['Address']
+            if 'Address' in cluster_info['Endpoint']:
+                self.DWH_ENDPOINT = cluster_info['Endpoint']['Address']
+            else:
+                print('Cluster may still be building or deleting. Please check back.')
         else:
             print('Cluster is still building. Please check back.')
 
