@@ -295,51 +295,61 @@ INSERT INTO attacks (
 # the following dict allows us to more easily control which drop/create/copy/insert functions we want to call
 table_commands = {
     'staging_honeypot': {
+        'name': 'staging_honeypot',
         'drop': staging_honeypot_drop,
         'create': staging_honeypot_create,
         'copy': staging_honeypot_copy
     },
     'staging_ipgeo': {
+        'name': 'staging_ipgeo',
         'drop': staging_ipgeo_drop,
         'create': staging_ipgeo_create,
         'copy': staging_ipgeo_copy
     },
     'staging_reputation': {
+        'name': 'staging_reputation',
         'drop': staging_reputation_drop,
         'create': staging_reputation_create,
         'copy': staging_reputation_copy
     },
     'dim_glastopf': {
+        'name': glastopf_events,
         'drop': dim_glastopf_drop,
         'create': dim_glastopf_create,
         'insert': dim_glastopf_insert
     },
     'dim_amun': {
+        'name': 'amun_events',
         'drop': dim_amun_drop,
         'create': dim_amun_create,
         'insert': dim_amun_insert
     },
     'dim_dionaea': {
+        'name': 'dionaea_events',
         'drop': dim_dionaea_drop,
         'create': dim_dionaea_create,
         'insert': dim_dionaea_insert
     },
     'dim_snort': {
+        'name': 'snort_events',
         'drop': dim_snort_drop,
         'create': dim_snort_create,
         'insert': dim_snort_insert
     },
     'dim_ipgeo': {
+        'name': 'ipgeo',
         'drop': dim_ipgeo_drop,
         'create': dim_ipgeo_create,
         'insert': dim_ipgeo_insert
     },
     'dim_reputation': {
+        'name': 'reputation',
         'drop': dim_reputation_drop,
         'create': dim_reputation_create,
         'insert': dim_reputation_insert
     },
     'fact_attacks': {
+        'name': 'attacks',
         'drop': fact_attacks_drop,
         'create': fact_attacks_create,
         'insert': fact_attacks_insert
