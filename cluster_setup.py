@@ -1,9 +1,10 @@
 # this script reads the config file and sets up the redshift cluster with the desired 
 # attributes. If the redshift cluster is already up and running, it will notify the user.
-
 from redshift import redshift
 import time
+import boto3
 CONFIG_FILENAME = './aws.cfg'  # note: not included in GH repo for privacy. See `aws_example.cfg` for example
+rs_client = boto3.client('redshift', region_name='us-west-2')
 
 
 def check_available(rs):
@@ -22,7 +23,7 @@ def check_available(rs):
     if info['ClusterStatus'] == 'available':
         return True
     elif info['ClusterStatus'] == 'deleting':
-        raise NotImplementedError(f'Cluster is currently deleting. Please wait and try again.\n{info}')
+        raise AttributeError(f'Cluster is currently deleting. Please wait and try again.\n{info}')
     elif info['ClusterStatus'] == 'creating': 
         return False
     
@@ -57,7 +58,10 @@ def main():
     rs = redshift(config_file=CONFIG_FILENAME)
     
     # check if cluster already available
-    clust_avail = check_available(rs)
+    try:
+        clust_avail = check_available(rs)
+    except rs_client.exceptions.ClusterNotFoundFault:
+        clust_avail = False
 
     # if cluster not available, create it
     if not clust_avail:
