@@ -1,12 +1,8 @@
 # About
 
-This repo holds my work for the Capstone project for the Udacity [Data Engineering Nanodegree](https://www.udacity.com/course/data-engineer-nanodegree--nd027). This README contains the TL;DR information. 
+This repo holds my work for the Capstone project for the Udacity [Data Engineering Nanodegree](https://www.udacity.com/course/data-engineer-nanodegree--nd027). For this project, I used a different data set than the one provided, to try to make this project a bit "unique." 
 
-For more information, please see the full writeup: TODO: LINK HERE. 
-
-# Project Summary
-
-TODO: SUMMARY PARAGRAPH FROM FINAL REPORT. 
+This README contains the TL;DR information about what is in this directory. For more information, please see the full writeup in the [final_report Jupyter notebook](./final_report.ipynb). If the buggy GH Jupyter notebook renderer isn't working, you may also visit the [nbviewer link](https://nbviewer.jupyter.org/github/tybyers/honeypot_datawh/blob/master/final_report.ipynb). 
 
 # Data Sources
 
