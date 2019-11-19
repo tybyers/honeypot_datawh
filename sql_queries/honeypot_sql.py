@@ -313,7 +313,7 @@ table_commands = {
         'copy': staging_reputation_copy
     },
     'dim_glastopf': {
-        'name': glastopf_events,
+        'name': 'glastopf_events',
         'drop': dim_glastopf_drop,
         'create': dim_glastopf_create,
         'insert': dim_glastopf_insert
