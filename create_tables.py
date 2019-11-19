@@ -3,7 +3,6 @@
 from honeypot_redshift import honeypot_redshift
 CONFIG_FILENAME = './aws.cfg'  # note: not included in GH repo for privacy. See `aws_example.cfg` for example
 
-
 def main():
     """ This function checks the redshift connection. If the database is available and endpoint information
     is up, then it will delete old tables and create new ones. If not...it won't. 

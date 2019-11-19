@@ -76,7 +76,7 @@ class honeypot_redshift(redshift):
             raise ValueError('`tables` parameter must be "all" or of type list.')
 
         for table in table_names:
-            print('Dropping table: {}'.format(table['name']))
+            print('Dropping table: {}'.format(self.table_cmds[table]['name']))
             cur.execute(self.table_cmds[table]['drop'])
             self.conn.commit()
 
@@ -106,7 +106,7 @@ class honeypot_redshift(redshift):
             raise ValueError('`tables` parameter must be "all" or of type list.')
 
         for table in table_names:
-            print('Creating table: {}'.format(table['name']))
+            print('Creating table: {}'.format(self.table_cmds[table]['name']))
             cur.execute(self.table_cmds[table]['create']) 
             self.conn.commit()
 
@@ -135,7 +135,7 @@ class honeypot_redshift(redshift):
 
         for table in table_names:
             if 'copy' in self.table_cmds[table]:
-                print('Copying into table: {}'.format(table['name']))
+                print('Copying into table: {}'.format(self.table_cmds[table]['name']))
                 cmd = self.table_cmds[table]['copy'].format(
                     self.data_paths[table], self.IAM_ROLE
                 )
@@ -168,11 +168,7 @@ class honeypot_redshift(redshift):
 
         for table in table_names:
             if 'insert' in self.table_cmds[table]:
-                print('Inserting into table: {}'.format(table['name']))
+                print('Inserting into table: {}'.format(self.table_cmds[table]['name']))
                 cmd = self.table_cmds[table]['insert']
                 cur.execute(cmd) 
                 self.conn.commit()
-
-    def query_db(self, query):
-
-        pass
